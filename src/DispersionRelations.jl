@@ -23,10 +23,13 @@ Return a pair `(line, ω)` where
     - `line` is a flat line that passes through the peaks used for the fit
     - `ω` is the complex frequency of the estimated exponential
 """
-function fit_complex_frequency(t, E, use_peaks=nothing)
+function fit_complex_frequency(t, E; use_peaks=nothing)
     peaks = (diff(sign.(diff(log.(E)))) .== -2)
 
     j = sum(peaks)
+    if isnothing(use_peaks) && j < 3
+        error("Cannot automatically fit complex frequency with fewer than 3 peaks to work with")
+    end
 
     fit_slope(range) = begin
         t̂ = t[3:end][peaks][range]
@@ -89,7 +92,7 @@ Return `(line, γ)`, where
     - `γ` is the best fit to the exponential growth rate,
     - `line` is `E₀ * exp.(γ .* t)`.
 """
-function fit_pure_growth_rate(t, E, time_range=nothing)
+function fit_pure_growth_rate(t, E; time_range=nothing)
     if !isnothing(time_range)
         range = searchsortedfirst(t, first(time_range)):searchsortedlast(t, last(time_range))
     else
